@@ -51,6 +51,17 @@ if IS_RENDER:
     if 'https://*.onrender.com' not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append('https://*.onrender.com')
 
+# بيئات التطوير السحابية (Cursor Cloud Agent, ngrok, ...)
+if DEBUG or not IS_RENDER:
+    for pattern in (
+        'https://*.agent.cvm.dev',
+        'https://*.cvm.dev',
+        'http://localhost',
+        'http://127.0.0.1',
+    ):
+        if pattern not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(pattern)
+
 # إزالة التكرار
 CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(CSRF_TRUSTED_ORIGINS))
 
@@ -67,6 +78,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'inventory.middleware.DevTrustedOriginMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

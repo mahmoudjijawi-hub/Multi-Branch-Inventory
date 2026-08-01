@@ -18,7 +18,31 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 SECRET_KEY = env('SECRET_KEY', default='django-insecure-dev-key-change-in-production')
 DEBUG = env('DEBUG')
-ALLOWED_HOSTS = env('ALLOWED_HOSTS')
+
+# ─── ALLOWED_HOSTS ───────────────────────────────────────────
+# يدعم التطوير المحلي + Render تلقائياً
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+if DEBUG:
+    # أثناء التطوير: اسمح بكل العناوين لتجنب خطأ "العنوان غير صالح"
+    ALLOWED_HOSTS = ['*']
+else:
+    # في الإنتاج على Render: تأكد من قبول نطاق onrender.com
+    if os.environ.get('RENDER') and '.onrender.com' not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append('.onrender.com')
+
+# ─── CSRF (مطلوب لـ HTTPS على Render) ───────────────────────
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
+if RENDER_EXTERNAL_HOSTNAME:
+    origin = f'https://{RENDER_EXTERNAL_HOSTNAME}'
+    if origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origin)
+if not DEBUG and '.onrender.com' not in str(CSRF_TRUSTED_ORIGINS):
+    CSRF_TRUSTED_ORIGINS.append('https://*.onrender.com')
 
 INSTALLED_APPS = [
     'django.contrib.admin',

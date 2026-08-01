@@ -1,14 +1,21 @@
 import json
+import logging
+import traceback
 
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.views import LoginView, LogoutView
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import connection
 from django.db.models import Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
+
+logger = logging.getLogger(__name__)
 
 from .forms import (
     BranchForm,
@@ -64,8 +71,54 @@ class CustomLoginView(LoginView):
     redirect_authenticated_user = True
 
     def form_valid(self, form):
-        messages.success(self.request, f'مرحباً {form.get_user().get_full_name() or form.get_user().username}!')
-        return super().form_valid(form)
+        try:
+            user = form.get_user()
+            messages.success(
+                self.request,
+                f'مرحباً {user.get_full_name() or user.username}!',
+            )
+            return super().form_valid(form)
+        except Exception:
+            logger.exception('Login form_valid failed')
+            raise
+
+    def form_invalid(self, form):
+        logger.warning('Login failed for username=%s errors=%s',
+                       self.request.POST.get('username'), form.errors)
+        return super().form_invalid(form)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except Exception:
+            logger.exception('Login POST crashed')
+            raise
+
+
+@require_GET
+def healthz(request):
+    """فحص سريع لحالة قاعدة البيانات (للتشخيص على Render)."""
+    engine = settings.DATABASES['default'].get('ENGINE', '')
+    payload = {
+        'ok': False,
+        'engine': engine.split('.')[-1],
+        'render': bool(getattr(settings, 'IS_RENDER', False) or __import__('os').environ.get('RENDER')),
+        'debug': settings.DEBUG,
+    }
+    try:
+        connection.ensure_connection()
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+            cursor.fetchone()
+        User = get_user_model()
+        payload['users'] = User.objects.count()
+        payload['ok'] = True
+    except Exception as exc:
+        payload['error'] = f'{type(exc).__name__}: {exc}'
+        payload['trace'] = traceback.format_exc().splitlines()[-5:]
+        logger.exception('healthz DB check failed')
+    status = 200 if payload['ok'] else 503
+    return JsonResponse(payload, status=status)
 
 
 class CustomLogoutView(LogoutView):

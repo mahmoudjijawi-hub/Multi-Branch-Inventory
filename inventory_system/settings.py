@@ -4,7 +4,6 @@ Django settings for inventory_system project.
 import os
 from pathlib import Path
 
-import dj_database_url
 import environ
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -107,24 +106,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'inventory_system.wsgi.application'
 
-# إذا وُجد DATABASE_URL (PostgreSQL على Render) يُستخدم، وإلا SQLite
-_db_url = os.environ.get('DATABASE_URL', '').strip()
+# SQLite فقط — نتجاهل DATABASE_URL حتى لو كان مضبوطاً على Render من إعداد قديم
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600 if _db_url else 0,
-        conn_health_checks=bool(_db_url),
-        ssl_require=bool(IS_RENDER and _db_url.startswith('postgres')),
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+        'CONN_MAX_AGE': 0,
+        'OPTIONS': {
+            'timeout': 30,
+        },
+    }
 }
-
-engine = DATABASES['default'].get('ENGINE', '')
-if 'postgresql' in engine:
-    DATABASES['default'].setdefault('OPTIONS', {})
-    DATABASES['default']['OPTIONS'].setdefault('sslmode', 'require')
-elif 'sqlite' in engine:
-    # SQLite لا يتحمل الاتصالات الدائمة مع gunicorn
-    DATABASES['default']['CONN_MAX_AGE'] = 0
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

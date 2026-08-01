@@ -2,6 +2,8 @@
 
 نظام إدارة مخزون لشركة مواد غذائية — مبني بـ Django، جاهز للنشر على Render بنقرة واحدة.
 
+يستخدم **SQLite** المدمج — بدون PostgreSQL وبدون إعداد قاعدة بيانات يدوي.
+
 ## المميزات
 
 - إدارة فروع متعددة مع مدير لكل فرع
@@ -35,31 +37,20 @@ python manage.py runserver
 | manager1 | manager123 | مدير فرع الرياض |
 | manager2 | manager123 | مدير فرع جدة |
 
-## النشر على Render (تلقائي بالكامل)
-
-**لا تحتاج إنشاء قاعدة بيانات يدوياً** إذا نشرت عبر Blueprint:
+## النشر على Render
 
 1. في Render: **New → Blueprint** → اختر المستودع → فرع `main`
-2. Render يكتشف `render.yaml` وينشئ:
-   - خدمة Web تلقائياً
-   - قاعدة بيانات PostgreSQL (`inventory-db`) تلقائياً
-   - يربط `DATABASE_URL` تلقائياً
-3. `build.sh` يشغّل: migrate + collectstatic + setup_groups + seed_data
-4. بعد النشر سجّل الدخول: `admin` / `admin123`
+2. أو على خدمة موجودة: **Manual Deploy → Deploy latest commit**
+3. لا تحتاج إنشاء PostgreSQL — النظام يستخدم SQLite تلقائياً
+4. عند التشغيل يتم إنشاء الجداول والبيانات التجريبية تلقائياً
+5. سجّل الدخول: `admin` / `admin123`
 
-### إذا أنشأت Web Service يدوياً (بدون Blueprint)
+### مهم إذا كان عندك DATABASE_URL قديم
 
-1. **New → PostgreSQL** → أنشئ قاعدة باسم أي شيء
-2. انسخ **Internal Database URL**
-3. في Web Service → Environment → أضف:
-   - `DATABASE_URL` = الرابط الذي نسخته
-   - `DEBUG` = `False`
-   - `ALLOWED_HOSTS` = `.onrender.com`
-4. Build Command: `bash build.sh`
-5. Start Command: `gunicorn inventory_system.wsgi:application --bind 0.0.0.0:$PORT`
-6. **Manual Deploy**
+احذف متغير `DATABASE_URL` من Environment في Render (إن وُجد)،  
+أو اتركه — الكود يتجاهله ويستخدم SQLite فقط.
 
-### متغيرات البيئة (تُضبط تلقائياً من render.yaml)
+### متغيرات البيئة
 
 | المتغير | القيمة |
 |---------|--------|
@@ -67,15 +58,15 @@ python manage.py runserver
 | DEBUG | False |
 | ALLOWED_HOSTS | .onrender.com |
 | CSRF_TRUSTED_ORIGINS | https://*.onrender.com |
-| DATABASE_URL | من PostgreSQL (تلقائي) |
 
 ## هيكل المشروع
 
 ```
 ├── manage.py
 ├── requirements.txt
-├── build.sh              # يشغّل كل شيء تلقائياً عند النشر
-├── render.yaml           # إعداد Render جاهز
+├── build.sh              # تثبيت + collectstatic عند البناء
+├── start.sh              # migrate + seed + تشغيل الخادم
+├── render.yaml           # إعداد Render (SQLite فقط)
 ├── inventory_system/
 ├── inventory/
 └── static/

@@ -78,7 +78,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'inventory.middleware.DevTrustedOriginMiddleware',
+    'inventory.middleware.CloudDevMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -136,6 +136,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
+
+# قيم افتراضية لإعدادات الكوكيز (يُعدّلها CloudDevMiddleware عند الحاجة)
+USE_X_FORWARDED_HOST = False
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+SECURE_PROXY_SSL_HEADER = None
 
 # إعدادات HTTPS — فقط على Render (ليس محلياً حتى لو DEBUG=False)
 if IS_RENDER:

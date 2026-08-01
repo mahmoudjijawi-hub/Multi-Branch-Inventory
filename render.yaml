@@ -1,12 +1,12 @@
-# انشر عبر Blueprint: New + → Blueprint → اختر هذا الريبو
-# قاعدة البيانات PostgreSQL تُنشأ وتربط تلقائياً — لا تحتاج إعداد يدوي
+# انشر عبر Blueprint: New + → Blueprint → اختَر هذا الريبو
+# SQLite فقط — بدون PostgreSQL
 services:
   - type: web
     name: inventory-system
     runtime: python
     plan: free
     buildCommand: bash build.sh
-    startCommand: gunicorn inventory_system.wsgi:application --bind 0.0.0.0:$PORT
+    startCommand: bash start.sh
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.0
@@ -18,13 +18,5 @@ services:
         value: ".onrender.com"
       - key: CSRF_TRUSTED_ORIGINS
         value: "https://*.onrender.com"
-      - key: DATABASE_URL
-        fromDatabase:
-          name: inventory-db
-          property: connectionString
-
-databases:
-  - name: inventory-db
-    plan: free
-    databaseName: inventory
-    user: inventory
+      - key: USE_SQLITE
+        value: "True"

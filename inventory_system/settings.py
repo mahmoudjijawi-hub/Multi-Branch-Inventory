@@ -107,6 +107,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'inventory_system.wsgi.application'
 
+# إذا وُجد DATABASE_URL (PostgreSQL على Render) يُستخدم، وإلا SQLite
 DATABASES = {
     'default': dj_database_url.config(
         default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
@@ -116,7 +117,8 @@ DATABASES = {
 }
 
 # Render PostgreSQL يتطلب SSL
-if IS_RENDER and 'postgresql' in DATABASES['default'].get('ENGINE', ''):
+engine = DATABASES['default'].get('ENGINE', '')
+if IS_RENDER and 'postgresql' in engine:
     DATABASES['default'].setdefault('OPTIONS', {})
     DATABASES['default']['OPTIONS']['sslmode'] = 'require'
 

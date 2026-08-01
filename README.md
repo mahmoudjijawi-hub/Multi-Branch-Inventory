@@ -37,11 +37,27 @@ python manage.py runserver
 
 ## النشر على Render (تلقائي بالكامل)
 
-1. اربط المستودع على GitHub: `mahmoudjijawi-hub/Multi-Branch-Inventory`
-2. في Render: **New → Blueprint** → اختر المستودع → فرع `main`
-3. Render يكتشف `render.yaml` وينشر تلقائياً
-4. `build.sh` يشغّل تلقائياً: migrate + setup_groups + seed_data + collectstatic
-5. **لا حاجة لأي أوامر يدوية** — البيانات والحسابات تُنشأ عند أول نشر
+**لا تحتاج إنشاء قاعدة بيانات يدوياً** إذا نشرت عبر Blueprint:
+
+1. في Render: **New → Blueprint** → اختر المستودع → فرع `main`
+2. Render يكتشف `render.yaml` وينشئ:
+   - خدمة Web تلقائياً
+   - قاعدة بيانات PostgreSQL (`inventory-db`) تلقائياً
+   - يربط `DATABASE_URL` تلقائياً
+3. `build.sh` يشغّل: migrate + collectstatic + setup_groups + seed_data
+4. بعد النشر سجّل الدخول: `admin` / `admin123`
+
+### إذا أنشأت Web Service يدوياً (بدون Blueprint)
+
+1. **New → PostgreSQL** → أنشئ قاعدة باسم أي شيء
+2. انسخ **Internal Database URL**
+3. في Web Service → Environment → أضف:
+   - `DATABASE_URL` = الرابط الذي نسخته
+   - `DEBUG` = `False`
+   - `ALLOWED_HOSTS` = `.onrender.com`
+4. Build Command: `bash build.sh`
+5. Start Command: `gunicorn inventory_system.wsgi:application --bind 0.0.0.0:$PORT`
+6. **Manual Deploy**
 
 ### متغيرات البيئة (تُضبط تلقائياً من render.yaml)
 
@@ -51,7 +67,7 @@ python manage.py runserver
 | DEBUG | False |
 | ALLOWED_HOSTS | .onrender.com |
 | CSRF_TRUSTED_ORIGINS | https://*.onrender.com |
-| DATABASE_URL | من PostgreSQL |
+| DATABASE_URL | من PostgreSQL (تلقائي) |
 
 ## هيكل المشروع
 

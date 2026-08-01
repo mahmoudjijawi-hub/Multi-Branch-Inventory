@@ -1,3 +1,5 @@
+{% load static %}
+{% load inline_static %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -6,8 +8,7 @@
     <title>{% block title %}نظام إدارة المخزون{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700&display=swap" rel="stylesheet">
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2.0">
+    {% inline_css 'css/style.css' %}
     {% block extra_css %}{% endblock %}
 </head>
 <body class="{% if user.is_authenticated %}has-sidebar{% else %}auth-page{% endif %}">
@@ -78,7 +79,7 @@
 </main>
 {% endif %}
 
-<script src="{% static 'js/main.js' %}?v=2.0"></script>
+{% inline_js 'js/main.js' %}
 {% block extra_js %}{% endblock %}
 </body>
 </html>

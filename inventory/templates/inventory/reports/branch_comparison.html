@@ -6,39 +6,41 @@
     <p>مقارنة المخزون وعدد التحويلات بين الفروع</p>
 </div>
 
-<div class="card">
+<div class="card" style="margin-bottom:1.5rem;">
     <div class="card-body">
         <canvas id="branchChart" height="100"></canvas>
     </div>
 </div>
 
-<div class="card" style="margin-top: 1.5rem;">
-    <div class="card-body table-responsive">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>الفرع</th>
-                    <th>إجمالي المخزون</th>
-                    <th>تحويلات صادرة</th>
-                    <th>تحويلات واردة</th>
-                    <th>إجمالي التحويلات</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in report_data %}
-                <tr>
-                    <td><strong>{{ row.name }}</strong></td>
-                    <td>{{ row.inventory_total }}</td>
-                    <td>{{ row.transfer_out }}</td>
-                    <td>{{ row.transfer_in }}</td>
-                    <td>{{ row.transfer_total }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="5" class="text-center text-muted">لا توجد بيانات</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="card-grid">
+    {% for row in report_data %}
+    <div class="item-card">
+        <h3 class="item-card-title">{{ row.name }}</h3>
+        <p class="item-card-desc">إحصائيات أداء الفرع</p>
+        <div class="item-card-fields">
+            <div class="item-card-field">
+                <label>المخزون</label>
+                <span>{{ row.inventory_total }}</span>
+            </div>
+            <div class="item-card-field">
+                <label>صادر</label>
+                <span>{{ row.transfer_out }}</span>
+            </div>
+            <div class="item-card-field">
+                <label>وارد</label>
+                <span>{{ row.transfer_in }}</span>
+            </div>
+        </div>
+        <div class="item-card-fields" style="margin-top:.5rem; padding-top:.5rem;">
+            <div class="item-card-field">
+                <label>إجمالي التحويلات</label>
+                <span>{{ row.transfer_total }}</span>
+            </div>
+        </div>
     </div>
+    {% empty %}
+    <div class="empty-state">لا توجد بيانات</div>
+    {% endfor %}
 </div>
 {% endblock %}
 
@@ -57,16 +59,16 @@ new Chart(document.getElementById('branchChart'), {
             {
                 label: 'إجمالي المخزون',
                 data: inventoryData,
-                backgroundColor: 'rgba(59, 130, 246, 0.7)',
-                borderColor: 'rgba(59, 130, 246, 1)',
+                backgroundColor: 'rgba(76, 175, 80, 0.7)',
+                borderColor: 'rgba(76, 175, 80, 1)',
                 borderWidth: 1,
                 borderRadius: 6,
             },
             {
                 label: 'عدد التحويلات',
                 data: transferData,
-                backgroundColor: 'rgba(16, 185, 129, 0.7)',
-                borderColor: 'rgba(16, 185, 129, 1)',
+                backgroundColor: 'rgba(26, 29, 41, 0.6)',
+                borderColor: 'rgba(26, 29, 41, 1)',
                 borderWidth: 1,
                 borderRadius: 6,
             }

@@ -6,7 +6,7 @@
         <h1>تحويلات المخزون</h1>
         <p>إدارة طلبات التحويل بين الفروع</p>
     </div>
-    <a href="{% url 'transfer_create' %}" class="btn btn-primary">+ طلب تحويل جديد</a>
+    <a href="{% url 'transfer_create' %}" class="btn btn-primary">+ إضافة</a>
 </div>
 
 <div class="card filter-card">
@@ -20,50 +20,52 @@
     </div>
 </div>
 
-<div class="card">
-    <div class="card-body table-responsive">
-        <table class="table" id="transfersTable">
-            <thead>
-                <tr>
-                    <th>من</th>
-                    <th>إلى</th>
-                    <th>المنتج</th>
-                    <th>الكمية</th>
-                    <th>مقدم الطلب</th>
-                    <th>التاريخ</th>
-                    <th>الحالة</th>
-                    <th>الإجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for t in transfers %}
-                <tr id="transfer-{{ t.pk }}">
-                    <td>{{ t.from_branch.name }}</td>
-                    <td>{{ t.to_branch.name }}</td>
-                    <td>{{ t.product.name }}</td>
-                    <td>{{ t.quantity }} {{ t.product.get_unit_display }}</td>
-                    <td>{{ t.requested_by.get_full_name|default:t.requested_by.username }}</td>
-                    <td>{{ t.created_at|date:"Y/m/d H:i" }}</td>
-                    <td class="status-cell">
-                        {% if t.status == 'pending' %}<span class="badge badge-warning">معلق</span>
-                        {% elif t.status == 'approved' %}<span class="badge badge-success">موافق</span>
-                        {% else %}<span class="badge badge-danger">مرفوض</span>{% endif %}
-                    </td>
-                    <td class="actions">
-                        {% if t.status == 'pending' %}
-                        <button class="btn btn-sm btn-success btn-approve" data-id="{{ t.pk }}" data-url="{% url 'transfer_approve' t.pk %}">موافقة</button>
-                        <button class="btn btn-sm btn-danger btn-reject" data-id="{{ t.pk }}" data-url="{% url 'transfer_reject' t.pk %}">رفض</button>
-                        {% else %}
-                        <span class="text-muted">{% if t.reviewed_by %}{{ t.reviewed_by.get_full_name|default:t.reviewed_by.username }}{% else %}—{% endif %}</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="8" class="text-center text-muted">لا توجد تحويلات</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="card-grid">
+    {% for t in transfers %}
+    <div class="item-card" id="transfer-{{ t.pk }}">
+        <h3 class="item-card-title">{{ t.product.name }}</h3>
+        <p class="item-card-desc">{{ t.from_branch.name }} → {{ t.to_branch.name }}</p>
+        <div class="item-card-fields">
+            <div class="item-card-field">
+                <label>الكمية</label>
+                <span>{{ t.quantity }} {{ t.product.get_unit_display }}</span>
+            </div>
+            <div class="item-card-field">
+                <label>مقدم الطلب</label>
+                <span>{{ t.requested_by.get_full_name|default:t.requested_by.username }}</span>
+            </div>
+            <div class="item-card-field">
+                <label>الحالة</label>
+                <span class="status-cell">
+                    {% if t.status == 'pending' %}<span class="badge badge-warning">معلق</span>
+                    {% elif t.status == 'approved' %}<span class="badge badge-success">موافق</span>
+                    {% else %}<span class="badge badge-danger">مرفوض</span>{% endif %}
+                </span>
+            </div>
+        </div>
+        <div class="item-card-fields" style="margin-top:.5rem; padding-top:.5rem;">
+            <div class="item-card-field">
+                <label>التاريخ</label>
+                <span>{{ t.created_at|date:"Y/m/d H:i" }}</span>
+            </div>
+            <div class="item-card-field">
+                <label>المراجع</label>
+                <span>{% if t.reviewed_by %}{{ t.reviewed_by.get_full_name|default:t.reviewed_by.username }}{% else %}—{% endif %}</span>
+            </div>
+            <div class="item-card-field">
+                <label>الإجراء</label>
+                <span>
+                    {% if t.status == 'pending' %}
+                    <button class="btn btn-sm btn-success btn-approve" data-url="{% url 'transfer_approve' t.pk %}">موافقة</button>
+                    <button class="btn btn-sm btn-danger btn-reject" data-url="{% url 'transfer_reject' t.pk %}">رفض</button>
+                    {% else %}—{% endif %}
+                </span>
+            </div>
+        </div>
     </div>
+    {% empty %}
+    <div class="empty-state">لا توجد تحويلات</div>
+    {% endfor %}
 </div>
 {% endblock %}
 
@@ -75,7 +77,6 @@ document.querySelectorAll('.btn-approve, .btn-reject').forEach(btn => {
         const action = this.classList.contains('btn-approve') ? 'approve' : 'reject';
         const confirmMsg = action === 'approve' ? 'هل تريد الموافقة على هذا التحويل؟' : 'هل تريد رفض هذا التحويل؟';
         if (!confirm(confirmMsg)) return;
-
         try {
             const response = await fetch(url, {
                 method: 'POST',
@@ -85,9 +86,7 @@ document.querySelectorAll('.btn-approve, .btn-reject').forEach(btn => {
                 },
             });
             const data = await response.json();
-            if (data.success) {
-                location.reload();
-            }
+            if (data.success) location.reload();
         } catch (err) {
             alert('حدث خطأ، يرجى المحاولة مرة أخرى.');
         }

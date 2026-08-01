@@ -5,60 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}نظام إدارة المخزون{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-  {% load static %}
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-    {% if user.is_authenticated %}
-    <nav class="navbar">
-        <div class="nav-brand">
-            <a href="{% url 'dashboard' %}">📦 إدارة المخزون</a>
+<body class="{% if user.is_authenticated %}has-sidebar{% else %}auth-page{% endif %}">
+
+{% if user.is_authenticated %}
+<div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <span class="sidebar-brand-icon">🏠</span>
+            <span class="sidebar-brand-text">Dashboard</span>
         </div>
-        <button class="nav-toggle" id="navToggle" aria-label="القائمة">☰</button>
-        <ul class="nav-links" id="navLinks">
-            <li><a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">لوحة التحكم</a></li>
-            <li><a href="{% url 'branch_list' %}" class="{% if 'branch' in request.resolver_match.url_name %}active{% endif %}">الفروع</a></li>
-            <li><a href="{% url 'product_list' %}" class="{% if 'product' in request.resolver_match.url_name %}active{% endif %}">المنتجات</a></li>
-            <li>
-                <a href="{% url 'inventory_list' %}" class="{% if 'inventory' in request.resolver_match.url_name %}active{% endif %}">
-                    المخزون
-                    {% if low_stock_count > 0 %}
-                    <span class="badge badge-danger">{{ low_stock_count }}</span>
-                    {% endif %}
-                </a>
-            </li>
-            <li><a href="{% url 'transfer_list' %}" class="{% if 'transfer' in request.resolver_match.url_name %}active{% endif %}">التحويلات</a></li>
-            <li><a href="{% url 'branch_report' %}" class="{% if 'report' in request.resolver_match.url_name or 'branch_report' in request.resolver_match.url_name %}active{% endif %}">التقارير</a></li>
-            <li class="nav-user">
-                <span>{{ user.get_full_name|default:user.username }}</span>
-                <form method="post" action="{% url 'logout' %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline">خروج</button>
-                </form>
-            </li>
-        </ul>
-    </nav>
-    {% endif %}
-
-    <main class="container">
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
+        <nav class="sidebar-nav">
+            <a href="{% url 'dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <span class="sidebar-icon">📊</span><span>لوحة التحكم</span>
+            </a>
+            <a href="{% url 'branch_list' %}" class="sidebar-link {% if 'branch' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="sidebar-icon">🏢</span><span>الفروع</span>
+            </a>
+            <a href="{% url 'product_list' %}" class="sidebar-link {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="sidebar-icon">📦</span><span>المنتجات</span>
+            </a>
+            <a href="{% url 'inventory_list' %}" class="sidebar-link {% if 'inventory' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="sidebar-icon">📋</span><span>المخزون</span>
+                {% if low_stock_count > 0 %}<span class="sidebar-badge">{{ low_stock_count }}</span>{% endif %}
+            </a>
+            <a href="{% url 'transfer_list' %}" class="sidebar-link {% if 'transfer' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="sidebar-icon">🔄</span><span>التحويلات</span>
+            </a>
+            <a href="{% url 'branch_report' %}" class="sidebar-link {% if 'report' in request.resolver_match.url_name or 'branch_report' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="sidebar-icon">📈</span><span>التقارير</span>
+            </a>
+        </nav>
+        <div class="sidebar-settings">
+            <p class="sidebar-settings-title">Settings</p>
+            <a href="{% url 'dashboard' %}" class="sidebar-link">
+                <span class="sidebar-icon">⚙️</span><span>الإعدادات</span>
+            </a>
         </div>
-        {% endif %}
+    </aside>
+    <div class="main-wrapper">
+        <header class="topbar">
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="القائمة">☰</button>
+            <div class="topbar-spacer"></div>
+            <form method="post" action="{% url 'logout' %}" class="topbar-logout">
+                {% csrf_token %}
+                <button type="submit" class="btn-signout">Sign Out</button>
+            </form>
+        </header>
+        <main class="main-content">
+{% else %}
+<main class="auth-main">
+{% endif %}
 
-        {% block content %}{% endblock %}
-    </main>
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% block content %}{% endblock %}
 
-    <footer class="footer">
-        <p>نظام إدارة المخزون متعدد الفروع &copy; 2026</p>
-    </footer>
+{% if user.is_authenticated %}
+        </main>
+    </div>
+</div>
+{% else %}
+</main>
+{% endif %}
 
-    <script src="{% static 'js/main.js' %}"></script>
-    {% block extra_js %}{% endblock %}
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

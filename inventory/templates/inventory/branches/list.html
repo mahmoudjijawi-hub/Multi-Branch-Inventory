@@ -7,40 +7,39 @@
         <p>عرض وإدارة فروع الشركة</p>
     </div>
     {% if is_general_admin %}
-    <a href="{% url 'branch_create' %}" class="btn btn-primary">+ إضافة فرع</a>
+    <a href="{% url 'branch_create' %}" class="btn btn-primary">+ إضافة</a>
     {% endif %}
 </div>
-<div class="card">
-    <div class="card-body table-responsive">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>اسم الفرع</th>
-                    <th>الموقع</th>
-                    <th>المدير</th>
-                    <th>إجمالي المخزون</th>
-                    <th>الإجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for branch in branches %}
-                <tr>
-                    <td><strong>{{ branch.name }}</strong></td>
-                    <td>{{ branch.location }}</td>
-                    <td>{% if branch.manager %}{{ branch.manager.get_full_name|default:branch.manager.username }}{% else %}—{% endif %}</td>
-                    <td>{{ branch.inventory_total|default:0 }}</td>
-                    <td class="actions">
-                        <a href="{% url 'branch_edit' branch.pk %}" class="btn btn-sm btn-outline">تعديل</a>
-                        {% if is_general_admin %}
-                        <a href="{% url 'branch_delete' branch.pk %}" class="btn btn-sm btn-danger">حذف</a>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="5" class="text-center text-muted">لا توجد فروع</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+<div class="card-grid">
+    {% for branch in branches %}
+    <div class="item-card">
+        <a href="{% url 'branch_edit' branch.pk %}" class="item-card-edit" title="تعديل">✏️</a>
+        <h3 class="item-card-title">{{ branch.name }}</h3>
+        <p class="item-card-desc">{{ branch.location }}</p>
+        <div class="item-card-fields">
+            <div class="item-card-field">
+                <label>المدير</label>
+                <span>{% if branch.manager %}{{ branch.manager.get_full_name|default:branch.manager.username }}{% else %}—{% endif %}</span>
+            </div>
+            <div class="item-card-field">
+                <label>المخزون</label>
+                <span>{{ branch.inventory_total|default:0 }}</span>
+            </div>
+            <div class="item-card-field">
+                <label>الفرع</label>
+                <span>نشط</span>
+            </div>
+        </div>
+        {% if is_general_admin %}
+        <div class="item-card-actions">
+            <a href="{% url 'branch_edit' branch.pk %}" class="btn btn-sm btn-outline">تعديل</a>
+            <a href="{% url 'branch_delete' branch.pk %}" class="btn btn-sm btn-danger">حذف</a>
+        </div>
+        {% endif %}
     </div>
+    {% empty %}
+    <div class="empty-state">لا توجد فروع</div>
+    {% endfor %}
 </div>
 {% endblock %}

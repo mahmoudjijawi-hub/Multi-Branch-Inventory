@@ -1,13 +1,11 @@
 {% extends 'inventory/base.html' %}
-
-{% block title %}تسجيل الدخول - نظام إدارة المخزون{% endblock %}
-
+{% block title %}تسجيل الدخول{% endblock %}
 {% block content %}
 <div class="login-container">
     <div class="login-card">
         <div class="login-header">
-            <h1>📦 نظام إدارة المخزون</h1>
-            <p>تسجيل الدخول إلى حسابك</p>
+            <h1>🏠 Dashboard</h1>
+            <p>نظام إدارة مخزون المواد الغذائية</p>
         </div>
         <form method="post" class="login-form">
             {% csrf_token %}
@@ -28,6 +26,9 @@
             </div>
             <button type="submit" class="btn btn-primary btn-block">دخول</button>
         </form>
+        <p class="text-muted text-center" style="margin-top:1.25rem;font-size:.8rem;">
+            تجريبي: admin / admin123
+        </p>
     </div>
 </div>
 {% endblock %}

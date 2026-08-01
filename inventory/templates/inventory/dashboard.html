@@ -1,7 +1,5 @@
 {% extends 'inventory/base.html' %}
-
 {% block title %}لوحة التحكم{% endblock %}
-
 {% block content %}
 <div class="page-header">
     <h1>لوحة التحكم</h1>
@@ -47,26 +45,24 @@
         </div>
         <div class="card-body">
             {% if low_stock_items %}
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>المنتج</th>
-                        <th>الفرع</th>
-                        <th>الكمية</th>
-                        <th>الحد الأدنى</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in low_stock_items %}
-                    <tr>
-                        <td>{{ item.product.name }} <span class="badge badge-danger">منخفض</span></td>
-                        <td>{{ item.branch.name }}</td>
-                        <td><strong class="text-danger">{{ item.quantity }}</strong></td>
-                        <td>{{ item.product.min_quantity }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="card-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+                {% for item in low_stock_items %}
+                <div class="item-card low-stock">
+                    <h3 class="item-card-title">{{ item.product.name }}</h3>
+                    <p class="item-card-desc">{{ item.branch.name }}</p>
+                    <div class="item-card-fields" style="grid-template-columns: repeat(2, 1fr);">
+                        <div class="item-card-field">
+                            <label>الكمية</label>
+                            <span class="text-danger">{{ item.quantity }}</span>
+                        </div>
+                        <div class="item-card-field">
+                            <label>الحد الأدنى</label>
+                            <span>{{ item.product.min_quantity }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
             {% else %}
             <p class="text-muted text-center">لا توجد تنبيهات حالياً ✅</p>
             {% endif %}
@@ -80,30 +76,32 @@
         </div>
         <div class="card-body">
             {% if recent_transfers %}
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>من</th>
-                        <th>إلى</th>
-                        <th>المنتج</th>
-                        <th>الحالة</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for t in recent_transfers %}
-                    <tr>
-                        <td>{{ t.from_branch.name }}</td>
-                        <td>{{ t.to_branch.name }}</td>
-                        <td>{{ t.product.name }} ({{ t.quantity }})</td>
-                        <td>
-                            {% if t.status == 'pending' %}<span class="badge badge-warning">معلق</span>
-                            {% elif t.status == 'approved' %}<span class="badge badge-success">موافق</span>
-                            {% else %}<span class="badge badge-danger">مرفوض</span>{% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="card-grid" style="grid-template-columns: 1fr;">
+                {% for t in recent_transfers %}
+                <div class="item-card">
+                    <h3 class="item-card-title">{{ t.product.name }}</h3>
+                    <p class="item-card-desc">{{ t.from_branch.name }} ← {{ t.to_branch.name }}</p>
+                    <div class="item-card-fields" style="grid-template-columns: repeat(3, 1fr);">
+                        <div class="item-card-field">
+                            <label>الكمية</label>
+                            <span>{{ t.quantity }}</span>
+                        </div>
+                        <div class="item-card-field">
+                            <label>الحالة</label>
+                            <span>
+                                {% if t.status == 'pending' %}<span class="badge badge-warning">معلق</span>
+                                {% elif t.status == 'approved' %}<span class="badge badge-success">موافق</span>
+                                {% else %}<span class="badge badge-danger">مرفوض</span>{% endif %}
+                            </span>
+                        </div>
+                        <div class="item-card-field">
+                            <label>التاريخ</label>
+                            <span>{{ t.created_at|date:"Y/m/d" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
             {% else %}
             <p class="text-muted text-center">لا توجد تحويلات بعد</p>
             {% endif %}

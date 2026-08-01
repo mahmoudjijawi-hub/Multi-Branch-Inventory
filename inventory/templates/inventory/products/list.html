@@ -7,7 +7,7 @@
         <p>بحث وفلترة المنتجات حسب الفرع والتصنيف</p>
     </div>
     {% if is_general_admin %}
-    <a href="{% url 'product_create' %}" class="btn btn-primary">+ إضافة منتج</a>
+    <a href="{% url 'product_create' %}" class="btn btn-primary">+ إضافة</a>
     {% endif %}
 </div>
 
@@ -27,50 +27,44 @@
     </div>
 </div>
 
-<div class="card">
-    <div class="card-body table-responsive">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>المنتج</th>
-                    <th>الباركود</th>
-                    <th>التصنيف</th>
-                    <th>الوحدة</th>
-                    <th>السعر</th>
-                    <th>المخزون</th>
-                    <th>الإجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in product_data %}
-                <tr>
-                    <td>
-                        <strong>{{ item.product.name }}</strong>
-                        {% if item.is_low %}<span class="badge badge-danger">منخفض</span>{% endif %}
-                    </td>
-                    <td><code>{{ item.product.barcode }}</code></td>
-                    <td>{{ item.product.category|default:"—" }}</td>
-                    <td>{{ item.product.get_unit_display }}</td>
-                    <td>{{ item.product.price }} ر.س</td>
-                    <td>
-                        {% for inv in item.inventories %}
-                        <span class="inventory-tag {% if inv.is_low_stock %}low{% endif %}">
-                            {{ inv.branch.name }}: {{ inv.quantity }}
-                        </span>
-                        {% empty %}—{% endfor %}
-                    </td>
-                    <td class="actions">
-                        {% if is_general_admin %}
-                        <a href="{% url 'product_edit' item.product.pk %}" class="btn btn-sm btn-outline">تعديل</a>
-                        <a href="{% url 'product_delete' item.product.pk %}" class="btn btn-sm btn-danger">حذف</a>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="7" class="text-center text-muted">لا توجد منتجات</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="card-grid">
+    {% for item in product_data %}
+    <div class="item-card {% if item.is_low %}low-stock{% endif %}">
+        {% if is_general_admin %}
+        <a href="{% url 'product_edit' item.product.pk %}" class="item-card-edit" title="تعديل">✏️</a>
+        {% endif %}
+        <h3 class="item-card-title">
+            {{ item.product.name }}
+            {% if item.is_low %}<span class="badge badge-danger">منخفض</span>{% endif %}
+        </h3>
+        <p class="item-card-desc">{{ item.product.category|default:"بدون تصنيف" }} — {{ item.product.get_unit_display }}</p>
+        <div class="item-card-fields">
+            <div class="item-card-field">
+                <label>الباركود</label>
+                <span><code>{{ item.product.barcode }}</code></span>
+            </div>
+            <div class="item-card-field">
+                <label>السعر</label>
+                <span>{{ item.product.price }} ر.س</span>
+            </div>
+            <div class="item-card-field">
+                <label>المخزون</label>
+                <span>
+                    {% for inv in item.inventories %}
+                    <span class="inventory-tag {% if inv.is_low_stock %}low{% endif %}">{{ inv.branch.name }}: {{ inv.quantity }}</span>
+                    {% empty %}—{% endfor %}
+                </span>
+            </div>
+        </div>
+        {% if is_general_admin %}
+        <div class="item-card-actions">
+            <a href="{% url 'product_edit' item.product.pk %}" class="btn btn-sm btn-outline">تعديل</a>
+            <a href="{% url 'product_delete' item.product.pk %}" class="btn btn-sm btn-danger">حذف</a>
+        </div>
+        {% endif %}
     </div>
+    {% empty %}
+    <div class="empty-state">لا توجد منتجات</div>
+    {% endfor %}
 </div>
 {% endblock %}

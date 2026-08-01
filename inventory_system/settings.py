@@ -108,19 +108,23 @@ TEMPLATES = [
 WSGI_APPLICATION = 'inventory_system.wsgi.application'
 
 # إذا وُجد DATABASE_URL (PostgreSQL على Render) يُستخدم، وإلا SQLite
+_db_url = os.environ.get('DATABASE_URL', '').strip()
 DATABASES = {
     'default': dj_database_url.config(
         default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600,
-        conn_health_checks=True,
+        conn_max_age=600 if _db_url else 0,
+        conn_health_checks=bool(_db_url),
+        ssl_require=bool(IS_RENDER and _db_url.startswith('postgres')),
     )
 }
 
-# Render PostgreSQL يتطلب SSL
 engine = DATABASES['default'].get('ENGINE', '')
-if IS_RENDER and 'postgresql' in engine:
+if 'postgresql' in engine:
     DATABASES['default'].setdefault('OPTIONS', {})
-    DATABASES['default']['OPTIONS']['sslmode'] = 'require'
+    DATABASES['default']['OPTIONS'].setdefault('sslmode', 'require')
+elif 'sqlite' in engine:
+    # SQLite لا يتحمل الاتصالات الدائمة مع gunicorn
+    DATABASES['default']['CONN_MAX_AGE'] = 0
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -172,3 +176,37 @@ if IS_RENDER:
     CSRF_COOKIE_SAMESITE = 'Lax'
 
 CSRF_FAILURE_VIEW = 'inventory.views.csrf_failure'
+
+# سجلات تظهر في Render Logs لتشخيص خطأ 500
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '[{levelname}] {asctime} {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+    },
+}

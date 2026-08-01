@@ -19,30 +19,40 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = env('SECRET_KEY', default='django-insecure-dev-key-change-in-production')
 DEBUG = env('DEBUG')
 
+# Render يضبط هذه المتغيرات تلقائياً
+IS_RENDER = bool(os.environ.get('RENDER'))
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME', '')
+RENDER_EXTERNAL_URL = os.environ.get('RENDER_EXTERNAL_URL', '').rstrip('/')
+
 # ─── ALLOWED_HOSTS ───────────────────────────────────────────
-# يدعم التطوير المحلي + Render تلقائياً
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 if DEBUG:
-    # أثناء التطوير: اسمح بكل العناوين لتجنب خطأ "العنوان غير صالح"
     ALLOWED_HOSTS = ['*']
-else:
-    # في الإنتاج على Render: تأكد من قبول نطاق onrender.com
-    if os.environ.get('RENDER') and '.onrender.com' not in ALLOWED_HOSTS:
+elif IS_RENDER:
+    if '.onrender.com' not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append('.onrender.com')
 
 # ─── CSRF (مطلوب لـ HTTPS على Render) ───────────────────────
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
+
+if RENDER_EXTERNAL_URL and RENDER_EXTERNAL_URL not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(RENDER_EXTERNAL_URL)
+
 if RENDER_EXTERNAL_HOSTNAME:
     origin = f'https://{RENDER_EXTERNAL_HOSTNAME}'
     if origin not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(origin)
-if not DEBUG and '.onrender.com' not in str(CSRF_TRUSTED_ORIGINS):
-    CSRF_TRUSTED_ORIGINS.append('https://*.onrender.com')
+
+if IS_RENDER:
+    if 'https://*.onrender.com' not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append('https://*.onrender.com')
+
+# إزالة التكرار
+CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(CSRF_TRUSTED_ORIGINS))
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -107,7 +117,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -115,9 +125,13 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
 
-if not DEBUG:
+# إعدادات HTTPS — فقط على Render (ليس محلياً حتى لو DEBUG=False)
+if IS_RENDER:
+    USE_X_FORWARDED_HOST = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     CSRF_COOKIE_SAMESITE = 'Lax'
+
+CSRF_FAILURE_VIEW = 'inventory.views.csrf_failure'

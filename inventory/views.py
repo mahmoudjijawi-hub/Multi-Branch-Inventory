@@ -408,3 +408,7 @@ def branch_report(request):
         'chart_inventory': chart_inventory,
         'chart_transfers': chart_transfers,
     })
+
+
+def csrf_failure(request, reason=''):
+    return render(request, 'csrf_failure.html', {'reason': reason}, status=403)

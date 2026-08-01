@@ -1,0 +1,113 @@
+{% extends 'inventory/base.html' %}
+
+{% block title %}لوحة التحكم{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>لوحة التحكم</h1>
+    <p>نظرة عامة على حالة المخزون والتحويلات</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">🏢</div>
+        <div class="stat-info">
+            <span class="stat-value">{{ branch_count }}</span>
+            <span class="stat-label">الفروع</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-info">
+            <span class="stat-value">{{ product_count }}</span>
+            <span class="stat-label">المنتجات</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-info">
+            <span class="stat-value">{{ total_inventory }}</span>
+            <span class="stat-label">إجمالي المخزون</span>
+        </div>
+    </div>
+    <div class="stat-card {% if pending_transfer_count > 0 %}stat-warning{% endif %}">
+        <div class="stat-icon">🔄</div>
+        <div class="stat-info">
+            <span class="stat-value">{{ pending_transfer_count }}</span>
+            <span class="stat-label">تحويلات معلقة</span>
+        </div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <div class="card-header">
+            <h2>⚠️ تنبيهات المخزون المنخفض</h2>
+            <a href="{% url 'inventory_list' %}" class="btn btn-sm btn-outline">عرض الكل</a>
+        </div>
+        <div class="card-body">
+            {% if low_stock_items %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>المنتج</th>
+                        <th>الفرع</th>
+                        <th>الكمية</th>
+                        <th>الحد الأدنى</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in low_stock_items %}
+                    <tr>
+                        <td>{{ item.product.name }} <span class="badge badge-danger">منخفض</span></td>
+                        <td>{{ item.branch.name }}</td>
+                        <td><strong class="text-danger">{{ item.quantity }}</strong></td>
+                        <td>{{ item.product.min_quantity }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted text-center">لا توجد تنبيهات حالياً ✅</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>🔄 آخر التحويلات</h2>
+            <a href="{% url 'transfer_list' %}" class="btn btn-sm btn-outline">عرض الكل</a>
+        </div>
+        <div class="card-body">
+            {% if recent_transfers %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>من</th>
+                        <th>إلى</th>
+                        <th>المنتج</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in recent_transfers %}
+                    <tr>
+                        <td>{{ t.from_branch.name }}</td>
+                        <td>{{ t.to_branch.name }}</td>
+                        <td>{{ t.product.name }} ({{ t.quantity }})</td>
+                        <td>
+                            {% if t.status == 'pending' %}<span class="badge badge-warning">معلق</span>
+                            {% elif t.status == 'approved' %}<span class="badge badge-success">موافق</span>
+                            {% else %}<span class="badge badge-danger">مرفوض</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted text-center">لا توجد تحويلات بعد</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

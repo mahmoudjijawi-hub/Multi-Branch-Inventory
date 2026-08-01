@@ -1,0 +1,26 @@
+{% extends 'inventory/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-header"><h1>{{ title }}</h1></div>
+<div class="card">
+    <div class="card-body">
+        <form method="post" class="form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="alert alert-error">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<span class="field-error">{{ field.errors.0 }}</span>{% endif %}
+            </div>
+            {% endfor %}
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">إرسال الطلب</button>
+                <a href="{% url 'transfer_list' %}" class="btn btn-outline">إلغاء</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

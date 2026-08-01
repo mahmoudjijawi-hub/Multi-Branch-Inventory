@@ -1,0 +1,82 @@
+{% extends 'inventory/base.html' %}
+{% block title %}المخزون{% endblock %}
+{% block content %}
+<div class="page-header flex-between">
+    <div>
+        <h1>مخزون الفروع</h1>
+        <p>عرض وإدارة كميات المخزون لكل فرع</p>
+    </div>
+    <a href="{% url 'inventory_create' %}" class="btn btn-primary">+ إضافة مخزون</a>
+</div>
+
+<div class="card filter-card">
+    <div class="card-body">
+        <form method="get" class="filter-form">
+            <div class="filter-grid">
+                <div class="form-group">
+                    <label>بحث</label>
+                    <input type="text" name="search" value="{{ search }}" class="form-control" placeholder="ابحث بالاسم أو الباركود...">
+                </div>
+                <div class="form-group">
+                    <label>الفرع</label>
+                    <select name="branch" class="form-control">
+                        <option value="">جميع الفروع</option>
+                        {% for b in branches %}
+                        <option value="{{ b.pk }}" {% if selected_branch == b.pk|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group filter-actions">
+                    <button type="submit" class="btn btn-primary">فلترة</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>الفرع</th>
+                    <th>المنتج</th>
+                    <th>الباركود</th>
+                    <th>التصنيف</th>
+                    <th>الكمية</th>
+                    <th>الحد الأدنى</th>
+                    <th>الحالة</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in inventories %}
+                <tr class="{% if inv.is_low_stock %}row-warning{% endif %}">
+                    <td>{{ inv.branch.name }}</td>
+                    <td><strong>{{ inv.product.name }}</strong></td>
+                    <td><code>{{ inv.product.barcode }}</code></td>
+                    <td>{{ inv.product.category|default:"—" }}</td>
+                    <td>
+                        <strong {% if inv.is_low_stock %}class="text-danger"{% endif %}>{{ inv.quantity }}</strong>
+                        {{ inv.product.get_unit_display }}
+                    </td>
+                    <td>{{ inv.product.min_quantity }}</td>
+                    <td>
+                        {% if inv.is_low_stock %}
+                        <span class="badge badge-danger">مخزون منخفض</span>
+                        {% else %}
+                        <span class="badge badge-success">طبيعي</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'inventory_edit' inv.pk %}" class="btn btn-sm btn-outline">تعديل</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted">لا يوجد مخزون</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'inventory/base.html' %}
+{% block title %}الفروع{% endblock %}
+{% block content %}
+<div class="page-header flex-between">
+    <div>
+        <h1>إدارة الفروع</h1>
+        <p>عرض وإدارة فروع الشركة</p>
+    </div>
+    {% if is_general_admin %}
+    <a href="{% url 'branch_create' %}" class="btn btn-primary">+ إضافة فرع</a>
+    {% endif %}
+</div>
+<div class="card">
+    <div class="card-body table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>اسم الفرع</th>
+                    <th>الموقع</th>
+                    <th>المدير</th>
+                    <th>إجمالي المخزون</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for branch in branches %}
+                <tr>
+                    <td><strong>{{ branch.name }}</strong></td>
+                    <td>{{ branch.location }}</td>
+                    <td>{% if branch.manager %}{{ branch.manager.get_full_name|default:branch.manager.username }}{% else %}—{% endif %}</td>
+                    <td>{{ branch.inventory_total|default:0 }}</td>
+                    <td class="actions">
+                        <a href="{% url 'branch_edit' branch.pk %}" class="btn btn-sm btn-outline">تعديل</a>
+                        {% if is_general_admin %}
+                        <a href="{% url 'branch_delete' branch.pk %}" class="btn btn-sm btn-danger">حذف</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-muted">لا توجد فروع</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

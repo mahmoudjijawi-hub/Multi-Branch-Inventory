@@ -1,0 +1,76 @@
+{% extends 'inventory/base.html' %}
+{% block title %}المنتجات{% endblock %}
+{% block content %}
+<div class="page-header flex-between">
+    <div>
+        <h1>إدارة المنتجات</h1>
+        <p>بحث وفلترة المنتجات حسب الفرع والتصنيف</p>
+    </div>
+    {% if is_general_admin %}
+    <a href="{% url 'product_create' %}" class="btn btn-primary">+ إضافة منتج</a>
+    {% endif %}
+</div>
+
+<div class="card filter-card">
+    <div class="card-body">
+        <form method="get" class="filter-form">
+            <div class="filter-grid">
+                <div class="form-group">{{ form.search.label_tag }}{{ form.search }}</div>
+                <div class="form-group">{{ form.branch.label_tag }}{{ form.branch }}</div>
+                <div class="form-group">{{ form.category.label_tag }}{{ form.category }}</div>
+                <div class="form-group filter-actions">
+                    <button type="submit" class="btn btn-primary">بحث</button>
+                    <a href="{% url 'product_list' %}" class="btn btn-outline">مسح</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>المنتج</th>
+                    <th>الباركود</th>
+                    <th>التصنيف</th>
+                    <th>الوحدة</th>
+                    <th>السعر</th>
+                    <th>المخزون</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in product_data %}
+                <tr>
+                    <td>
+                        <strong>{{ item.product.name }}</strong>
+                        {% if item.is_low %}<span class="badge badge-danger">منخفض</span>{% endif %}
+                    </td>
+                    <td><code>{{ item.product.barcode }}</code></td>
+                    <td>{{ item.product.category|default:"—" }}</td>
+                    <td>{{ item.product.get_unit_display }}</td>
+                    <td>{{ item.product.price }} ر.س</td>
+                    <td>
+                        {% for inv in item.inventories %}
+                        <span class="inventory-tag {% if inv.is_low_stock %}low{% endif %}">
+                            {{ inv.branch.name }}: {{ inv.quantity }}
+                        </span>
+                        {% empty %}—{% endfor %}
+                    </td>
+                    <td class="actions">
+                        {% if is_general_admin %}
+                        <a href="{% url 'product_edit' item.product.pk %}" class="btn btn-sm btn-outline">تعديل</a>
+                        <a href="{% url 'product_delete' item.product.pk %}" class="btn btn-sm btn-danger">حذف</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted">لا توجد منتجات</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

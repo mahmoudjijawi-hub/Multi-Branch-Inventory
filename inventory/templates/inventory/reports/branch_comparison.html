@@ -1,0 +1,88 @@
+{% extends 'inventory/base.html' %}
+{% block title %}تقرير مقارنة الفروع{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>تقرير مقارنة أداء الفروع</h1>
+    <p>مقارنة المخزون وعدد التحويلات بين الفروع</p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <canvas id="branchChart" height="100"></canvas>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 1.5rem;">
+    <div class="card-body table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>الفرع</th>
+                    <th>إجمالي المخزون</th>
+                    <th>تحويلات صادرة</th>
+                    <th>تحويلات واردة</th>
+                    <th>إجمالي التحويلات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in report_data %}
+                <tr>
+                    <td><strong>{{ row.name }}</strong></td>
+                    <td>{{ row.inventory_total }}</td>
+                    <td>{{ row.transfer_out }}</td>
+                    <td>{{ row.transfer_in }}</td>
+                    <td>{{ row.transfer_total }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-muted">لا توجد بيانات</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const labels = {{ chart_labels|safe }};
+const inventoryData = {{ chart_inventory|safe }};
+const transferData = {{ chart_transfers|safe }};
+
+new Chart(document.getElementById('branchChart'), {
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [
+            {
+                label: 'إجمالي المخزون',
+                data: inventoryData,
+                backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1,
+                borderRadius: 6,
+            },
+            {
+                label: 'عدد التحويلات',
+                data: transferData,
+                backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                borderColor: 'rgba(16, 185, 129, 1)',
+                borderWidth: 1,
+                borderRadius: 6,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'top', labels: { font: { family: 'Tajawal', size: 14 } } },
+            title: { display: true, text: 'مقارنة أداء الفروع', font: { family: 'Tajawal', size: 18 } }
+        },
+        scales: {
+            y: { beginAtZero: true, ticks: { font: { family: 'Tajawal' } } },
+            x: { ticks: { font: { family: 'Tajawal' } } }
+        }
+    }
+});
+</script>
+{% endblock %}

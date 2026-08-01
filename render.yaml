@@ -1,3 +1,5 @@
+# انشر عبر Blueprint: New + → Blueprint → اختر هذا الريبو
+# قاعدة البيانات PostgreSQL تُنشأ وتربط تلقائياً — لا تحتاج إعداد يدوي
 services:
   - type: web
     name: inventory-system

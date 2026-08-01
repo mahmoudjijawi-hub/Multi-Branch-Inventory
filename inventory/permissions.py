@@ -77,10 +77,9 @@ def require_general_admin(view_func):
 
 
 def require_login_branch_access(view_func):
+    """يسمح لأي مستخدم مسجّل بالدخول. الصلاحيات تُطبّق عبر فلترة البيانات."""
     @wraps(view_func)
     @login_required
     def wrapper(request, *args, **kwargs):
-        if not (is_general_admin(request.user) or is_branch_manager(request.user)):
-            raise PermissionDenied('ليس لديك صلاحية للوصول.')
         return view_func(request, *args, **kwargs)
     return wrapper

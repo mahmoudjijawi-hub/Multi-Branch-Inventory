@@ -1,0 +1,14 @@
+{% extends 'inventory/base.html' %}
+{% block title %}غير مصرح{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 3rem auto; text-align: center;">
+    <div class="card-body">
+        <h1 style="font-size: 3rem; margin-bottom: 1rem;">🔒</h1>
+        <h2>ليس لديك صلاحية</h2>
+        <p class="text-muted" style="margin: 1rem 0;">
+            {{ exception|default:"هذه الصفحة متاحة للأدمن العام فقط." }}
+        </p>
+        <a href="{% url 'dashboard' %}" class="btn btn-primary">العودة للوحة التحكم</a>
+    </div>
+</div>
+{% endblock %}

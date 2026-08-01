@@ -28,6 +28,11 @@ class Command(BaseCommand):
         view_perms = [p for p in perms if 'view' in p.codename or 'change' in p.codename or 'add' in p.codename]
         manager_group.permissions.set(view_perms)
 
+        # ربط المستخدمين الفائقين بمجموعة الأدمن تلقائياً
+        from django.contrib.auth.models import User
+        for user in User.objects.filter(is_superuser=True):
+            user.groups.add(admin_group)
+
         self.stdout.write('تم إنشاء المجموعات: أدمن عام، مدير فرع')
 
     def setup_demo_data(self):

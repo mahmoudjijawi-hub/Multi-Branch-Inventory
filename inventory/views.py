@@ -2,6 +2,8 @@ import json
 
 from django.contrib import messages
 from django.contrib.auth.views import LoginView, LogoutView
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import Q, Sum
 from django.http import JsonResponse
@@ -55,6 +57,7 @@ def dashboard(request):
     return render(request, 'inventory/dashboard.html', context)
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class CustomLoginView(LoginView):
     template_name = 'inventory/login.html'
     authentication_form = LoginForm

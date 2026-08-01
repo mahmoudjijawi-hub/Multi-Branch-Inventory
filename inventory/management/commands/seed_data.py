@@ -260,9 +260,12 @@ class Command(BaseCommand):
                 },
             )
             if was_created:
-                user.set_password(password)
-                user.save()
                 created += 1
+            # تأكد من كلمة المرور دائماً (مهم عند إعادة النشر على Render)
+            user.set_password(password)
+            user.is_superuser = is_super
+            user.is_staff = is_staff or is_super
+            user.save()
             group = admin_group if group_name == GROUP_ADMIN else manager_group
             user.groups.add(group)
             UserProfile.objects.get_or_create(user=user)

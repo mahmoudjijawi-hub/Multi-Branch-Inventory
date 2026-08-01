@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700&display=swap" rel="stylesheet">
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2.0">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="{% if user.is_authenticated %}has-sidebar{% else %}auth-page{% endif %}">
@@ -20,23 +20,23 @@
             <span class="sidebar-brand-text">Dashboard</span>
         </div>
         <nav class="sidebar-nav">
-            <a href="{% url 'dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <a href="{% url 'dashboard' %}" class="sidebar-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <span class="sidebar-icon">📊</span><span>لوحة التحكم</span>
             </a>
-            <a href="{% url 'branch_list' %}" class="sidebar-link {% if 'branch' in request.resolver_match.url_name %}active{% endif %}">
+            <a href="{% url 'branch_list' %}" class="sidebar-link {% if request.resolver_match and 'branch' in request.resolver_match.url_name %}active{% endif %}">
                 <span class="sidebar-icon">🏢</span><span>الفروع</span>
             </a>
-            <a href="{% url 'product_list' %}" class="sidebar-link {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
+            <a href="{% url 'product_list' %}" class="sidebar-link {% if request.resolver_match and 'product' in request.resolver_match.url_name %}active{% endif %}">
                 <span class="sidebar-icon">📦</span><span>المنتجات</span>
             </a>
-            <a href="{% url 'inventory_list' %}" class="sidebar-link {% if 'inventory' in request.resolver_match.url_name %}active{% endif %}">
+            <a href="{% url 'inventory_list' %}" class="sidebar-link {% if request.resolver_match and 'inventory' in request.resolver_match.url_name %}active{% endif %}">
                 <span class="sidebar-icon">📋</span><span>المخزون</span>
                 {% if low_stock_count > 0 %}<span class="sidebar-badge">{{ low_stock_count }}</span>{% endif %}
             </a>
-            <a href="{% url 'transfer_list' %}" class="sidebar-link {% if 'transfer' in request.resolver_match.url_name %}active{% endif %}">
+            <a href="{% url 'transfer_list' %}" class="sidebar-link {% if request.resolver_match and 'transfer' in request.resolver_match.url_name %}active{% endif %}">
                 <span class="sidebar-icon">🔄</span><span>التحويلات</span>
             </a>
-            <a href="{% url 'branch_report' %}" class="sidebar-link {% if 'report' in request.resolver_match.url_name or 'branch_report' in request.resolver_match.url_name %}active{% endif %}">
+            <a href="{% url 'branch_report' %}" class="sidebar-link {% if request.resolver_match and 'report' in request.resolver_match.url_name or request.resolver_match and 'branch_report' in request.resolver_match.url_name %}active{% endif %}">
                 <span class="sidebar-icon">📈</span><span>التقارير</span>
             </a>
         </nav>
@@ -78,7 +78,7 @@
 </main>
 {% endif %}
 
-<script src="{% static 'js/main.js' %}"></script>
+<script src="{% static 'js/main.js' %}?v=2.0"></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -32,7 +32,7 @@
             </div>
             <div class="item-card-field">
                 <label>مقدم الطلب</label>
-                <span>{{ t.requested_by.get_full_name|default:t.requested_by.username }}</span>
+                <span>{% if t.requested_by %}{{ t.requested_by.get_full_name|default:t.requested_by.username }}{% else %}—{% endif %}</span>
             </div>
             <div class="item-card-field">
                 <label>الحالة</label>
